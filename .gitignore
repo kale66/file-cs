@@ -1,0 +1,10 @@
+node_modules/
+dist/
+dist-single/
+fixtures/
+*.log
+.DS_Store
+Thumbs.db
+*.local
+.vite/
+coverage/.merkle-snapshot.json

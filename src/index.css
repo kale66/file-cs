@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light dark;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+    @apply dark:bg-slate-950 dark:text-slate-100;
+  }
+
+  ::selection {
+    @apply bg-emerald-200 text-slate-900;
+  }
+}
+
+@layer components {
+  .cls-focus {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950;
+  }
+
+  .cls-table-row {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 48px;
+  }
+}
