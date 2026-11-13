@@ -84,9 +84,9 @@ Worker 通道故障按原因分类，`CLS-E-1008` 仅作无法归类的兜底；
 
 协议版本：`PROTOCOL_VERSION = 2`（新增 `job:pong` 心跳与 `job:error.jobId` 归属校验）。页面与引擎必须同源同版本构建。
 
-## 4. 规则清单（21 条）
+## 4. 规则清单（26 条）
 
-规则集版本：`1.0.0`。全部规则由 `src/core/rules.ts` 的 `RULES` 数组驱动，README 与代码由单测一致性断言（`RULES.length === 21`）。
+规则集版本：`1.1.0`。全部规则由 `src/core/rules.ts` 的 `RULES` 数组驱动，README 与代码由单测一致性断言（`RULES.length === 26`）。
 
 | ID | 名称 | 级别 | 说明 | 修复建议 | 默认 |
 |---|---|---|---|---|---|
@@ -111,12 +111,18 @@ Worker 通道故障按原因分类，`CLS-E-1008` 仅作无法归类的兜底；
 | CLS-R-019 | 高熵密钥串 | medium | 关键词附近的 16–128 位高熵字符串，疑似真实密钥。 | 确认该值是否为真实密钥；若是，立即轮换并改用密钥管理服务。 | 开 |
 | CLS-R-020 | 邮箱地址 | low | 注释或文档中留下个人邮箱地址（默认关闭）。 | 确认是否需要公开个人联系方式；必要时移除或改用团队邮箱。 | 关 |
 | CLS-R-021 | 手机号 | medium | 注释或文档中留下中国大陆手机号（默认关闭）。 | 移除个人手机号，改用团队联系方式或工单系统。 | 关 |
+| CLS-R-022 | DeepSeek API Key | critical | 注释中出现 DeepSeek API Key 形态的硬编码凭证。 | 在 DeepSeek 开放平台撤销并重建该 Key，改用环境变量或密钥管理服务。 | 开 |
+| CLS-R-023 | 豆包（火山引擎）API Key（UUID） | critical | 注释中出现豆包/火山引擎 API Key 的 UUID 或 32 位十六进制形态。 | 在火山引擎方舟控制台禁用并重建该 Key，改用环境变量或密钥管理服务。 | 开 |
+| CLS-R-024 | 阿里通义千问（DashScope）API Key | critical | 注释中出现 DashScope / 通义千问 API Key 形态的硬编码凭证。 | 在阿里云百炼控制台撤销并重建该 Key，改用环境变量或密钥管理服务。 | 开 |
+| CLS-R-025 | 智谱 GLM / Kimi API Key | critical | 注释中出现智谱 GLM 点号密钥或 Kimi/Moonshot 的 sk- 密钥。 | 在智谱开放平台或 Moonshot 控制台撤销并重建该 Key，改用环境变量。 | 开 |
+| CLS-R-026 | 豆包（火山引擎）API Key（ark- 前缀） | critical | 注释中出现豆包/火山引擎新版 ark- 前缀 API Key（ark-UUID-suffix）形态。 | 在火山引擎方舟控制台禁用并重建该 Key，改用环境变量或密钥管理服务。 | 开 |
 
-**与原始需求的三处必要调整**
+**与原始需求及后续确认的调整**
 
 1. `CLS-R-011` 关键词扩展了中文：`密码 / 口令 / 密钥 / 令牌 / 凭证`，并支持中文冒号 `：`（验收用例要求 `数据库密码: Admin@123` 命中）。
 2. `CLS-R-011` 对已知弱口令（`root/admin/test/guest/demo/123456/password/passwd`）允许 4 字符；普通值仍要求 ≥ 6 字符。
 3. 邮箱与手机号拆分为 `CLS-R-020`（low）与 `CLS-R-021`（medium），因为两者严重级别不同；均默认关闭，由“扫描联系方式”开关启用。
+4. 新增国内模型规则 `CLS-R-022~026`：DeepSeek（`sk-` + 32/48 位）、豆包 UUID（specificity 110）与 `ark-` 前缀（130）、通义千问（`sk-` + 32 位）、智谱 GLM / Kimi。豆包按两种形态拆为两条规则，以落实用户确认的 specificity 区分；同时修复 `sk-your_api_key_here` 占位符漏判。
 
 **扫描范围补充**：`.bat / .cmd` 已纳入代码类白名单（仅注释扫描），否则 Batch 注释需求无法触发。
 
@@ -225,7 +231,7 @@ src/
 │  ├─ unzip.ts                 # zip/文件夹读取、路径校验、炸弹防护
 │  ├─ fileFilter.ts            # 分类、忽略组、跳过原因
 │  ├─ scanner.ts               # 单文件扫描、去重、排序、摘要
-│  ├─ rules.ts                 # 21 条数据驱动规则与编译缓存
+│  ├─ rules.ts                 # 26 条数据驱动规则与编译缓存
 │  ├─ redact.ts                # 脱敏、上下文、导出清洗
 │  ├─ entropy.ts               # Shannon 熵与字符集判定
 │  ├─ export.ts                # JSON/CSV/路径清单/下载/剪贴板

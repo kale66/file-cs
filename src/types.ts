@@ -310,7 +310,8 @@ export type RuleValidator =
   | 'password-like'
   | 'no-sample-host'
   | 'jwt-three-segments'
-  | 'private-key';
+  | 'private-key'
+  | 'doubao-uuid';
 
 export interface Rule {
   readonly id: string;

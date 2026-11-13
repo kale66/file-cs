@@ -8,7 +8,7 @@ import type {
   Severity,
 } from '@/types';
 
-export const RULE_SET_VERSION = '1.0.0';
+export const RULE_SET_VERSION = '1.1.0';
 
 const HIGH_ENTROPY: EntropyConfig = {
   threshold: 3.5,
@@ -410,6 +410,102 @@ export const RULES: readonly Rule[] = [
     entropy: null,
     enabledByDefault: false,
   },
+  {
+    id: 'CLS-R-022',
+    name: 'DeepSeek API Key',
+    severity: 'critical',
+    pattern:
+      '(?:DEEPSEEK|deepseek)[^\\n]{0,40}?\\b(sk-(?!proj-)[A-Za-z0-9]{32}(?:[A-Za-z0-9]{16})?)\\b',
+    flags: 'g',
+    description: '注释中出现 DeepSeek API Key 形态的硬编码凭证。',
+    suggestion: '在 DeepSeek 开放平台撤销并重建该 Key，改用环境变量或密钥管理服务。',
+    maskKind: 'generic',
+    captureGroup: 1,
+    validator: 'none',
+    dedupeFamily: 'secret-value',
+    specificity: 120,
+    placeholderGuard: true,
+    sampleGuard: false,
+    entropy: null,
+    enabledByDefault: true,
+  },
+  {
+    id: 'CLS-R-023',
+    name: '豆包（火山引擎）API Key（UUID）',
+    severity: 'critical',
+    pattern:
+      '(?:ARK_API_KEY|VOLCENGINE|VOLC|DOUBAO|doubao|火山|方舟|豆包)[^\\n]{0,40}?\\b([a-fA-F0-9]{32}|[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})\\b',
+    flags: 'g',
+    description: '注释中出现豆包/火山引擎 API Key 的 UUID 或 32 位十六进制形态。',
+    suggestion: '在火山引擎方舟控制台禁用并重建该 Key，改用环境变量或密钥管理服务。',
+    maskKind: 'generic',
+    captureGroup: 1,
+    validator: 'doubao-uuid',
+    dedupeFamily: 'secret-value',
+    specificity: 110,
+    placeholderGuard: true,
+    sampleGuard: false,
+    entropy: null,
+    enabledByDefault: true,
+  },
+  {
+    id: 'CLS-R-024',
+    name: '阿里通义千问（DashScope）API Key',
+    severity: 'critical',
+    pattern:
+      '(?:DASHSCOPE|QWEN|通义|千问|aliyun)[^\\n]{0,40}?\\b(sk-(?!proj-)[A-Za-z0-9]{32})\\b',
+    flags: 'g',
+    description: '注释中出现 DashScope / 通义千问 API Key 形态的硬编码凭证。',
+    suggestion: '在阿里云百炼控制台撤销并重建该 Key，改用环境变量或密钥管理服务。',
+    maskKind: 'generic',
+    captureGroup: 1,
+    validator: 'none',
+    dedupeFamily: 'secret-value',
+    specificity: 120,
+    placeholderGuard: true,
+    sampleGuard: false,
+    entropy: null,
+    enabledByDefault: true,
+  },
+  {
+    id: 'CLS-R-025',
+    name: '智谱 GLM / Kimi API Key',
+    severity: 'critical',
+    pattern:
+      '(?:GLM|ZHIPU|BIGMODEL|智谱|MOONSHOT|KIMI|月之暗面)[^\\n]{0,40}?\\b((?:sk-(?!proj-)[A-Za-z0-9]{32,64})|(?:[a-fA-F0-9]{32}\\.[A-Za-z0-9]{16}))\\b',
+    flags: 'g',
+    description: '注释中出现智谱 GLM 点号密钥或 Kimi/Moonshot 的 sk- 密钥。',
+    suggestion: '在智谱开放平台或 Moonshot 控制台撤销并重建该 Key，改用环境变量。',
+    maskKind: 'generic',
+    captureGroup: 1,
+    validator: 'none',
+    dedupeFamily: 'secret-value',
+    specificity: 130,
+    placeholderGuard: true,
+    sampleGuard: false,
+    entropy: null,
+    enabledByDefault: true,
+  },
+  {
+    id: 'CLS-R-026',
+    name: '豆包（火山引擎）API Key（ark- 前缀）',
+    severity: 'critical',
+    pattern:
+      '\\b(ark-[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}-[A-Za-z0-9_-]+)(?![A-Za-z0-9_-])',
+    flags: 'g',
+    description:
+      '注释中出现豆包/火山引擎新版 ark- 前缀 API Key（ark-UUID-suffix）形态。',
+    suggestion: '在火山引擎方舟控制台禁用并重建该 Key，改用环境变量或密钥管理服务。',
+    maskKind: 'generic',
+    captureGroup: 1,
+    validator: 'doubao-uuid',
+    dedupeFamily: 'secret-value',
+    specificity: 130,
+    placeholderGuard: true,
+    sampleGuard: false,
+    entropy: null,
+    enabledByDefault: true,
+  },
 ];
 
 export const RULE_CATALOG: readonly RuleCatalogEntry[] = RULES.map((rule) => ({
@@ -523,8 +619,14 @@ const TEMPLATE_PLACEHOLDER_RES: readonly RegExp[] = [
   /^%[A-Z_]+%$/,
 ];
 
+const SECRET_PREFIX_RE = /^(?:sk|pk|rk|ghp|gho|ghs|ghu|ghr|xox[baprs]|ark|sg)[-_]?/i;
+
 export function normalizePlaceholderCandidate(value: string): string {
-  return value.replace(/^['"`]|['"`]$/g, '').trim().toLowerCase();
+  return value
+    .replace(/^['"`]|['"`]$/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(SECRET_PREFIX_RE, '');
 }
 
 export function isPlaceholderValue(value: string, rule: Rule): boolean {

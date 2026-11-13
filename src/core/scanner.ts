@@ -103,6 +103,24 @@ function passesValidator(rule: Rule, matchedText: string, rawValue: string): boo
     }
     case 'private-key':
       return rawValue.startsWith('-----BEGIN');
+    case 'doubao-uuid': {
+      const value = rawValue.trim().toLowerCase();
+      const withoutPrefix = value.startsWith('ark-') ? value.slice(4) : value;
+      const uuidPart = withoutPrefix.slice(0, 36);
+      const normalized = (uuidPart.includes('-') ? uuidPart : withoutPrefix).replace(
+        /-/g,
+        '',
+      );
+      if (normalized.length === 0) return false;
+      if (/^(.)\1+$/.test(normalized)) return false;
+      if (
+        normalized === '00000000000000000000000000000000' ||
+        normalized === '123e4567e89b12d3a456426614174000'
+      ) {
+        return false;
+      }
+      return true;
+    }
     case 'none':
     default:
       return true;

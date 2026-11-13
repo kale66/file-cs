@@ -112,7 +112,16 @@ describe('报告与路径清单', () => {
     expect(json).not.toContain('rawSnippet');
     expect(json).not.toContain('AKIAABCDEFGHIJKLMNOP');
     expect(report.version).toBe('1.0');
-    expect(report.ruleCatalog).toHaveLength(21);
+    expect(report.ruleCatalog).toHaveLength(RULE_CATALOG.length);
+    expect(report.ruleCatalog.map((entry) => entry.id)).toEqual(
+      expect.arrayContaining([
+        'CLS-R-022',
+        'CLS-R-023',
+        'CLS-R-024',
+        'CLS-R-025',
+        'CLS-R-026',
+      ]),
+    );
   });
 
   it('路径清单去重排序且仅含路径', () => {
